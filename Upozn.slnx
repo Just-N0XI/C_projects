@@ -1,0 +1,7 @@
+<Solution>
+  <Configurations>
+    <Platform Name="x64" />
+    <Platform Name="x86" />
+  </Configurations>
+  <Project Path="Upozn/Upozn.vcxproj" Id="ab3cc1d6-c3e5-4115-9536-126f95a35979" />
+</Solution>

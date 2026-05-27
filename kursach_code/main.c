@@ -120,7 +120,7 @@ static void menu_edit(Database* db, int global_idx) {
             safe_strncpy(r->plate, buf, sizeof(r->plate));
             break;
         }
-        db->modified = 1;
+        db->modified++;
         printf("Изменено.\n");
     }
 }
@@ -177,7 +177,6 @@ static void menu_results(Database* db, SearchResult* sr, const char* query) {
 
     if (action == 0) return;
 
-    /* Если найдено несколько и нужно выбрать конкретную */
     int target_idx = -1; /* глобальный индекс выбранной записи */
     if (action == 1 || action == 2) {
         if (sr->count == 1) {
@@ -265,9 +264,9 @@ int main(void) {
     SetConsoleCP(1251);
     SetConsoleOutputCP(1251);
 
-    printf("==============================================\n");
-    printf("  Система учёта ТС ГАИ — поиск по VIN\n");
-    printf("==============================================\n\n");
+    printf("==============================\n");
+    printf("  Система учёта ТС ГАИ \n");
+    printf("==============================\n\n");
 
     /* инициализация БД */
     Database db;
@@ -308,7 +307,7 @@ int main(void) {
     }
 
     /* автосохранение */
-    if (db.modified) {
+    if (db.modified >= 1) {
         printf("Сохранение изменений в \"%s\"...\n", db.filepath);
         if (db_save(&db) == OK)
             printf("Сохранено.\n");

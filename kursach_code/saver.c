@@ -48,8 +48,7 @@ void print_results(const Database* db, const SearchResult* sr) {
     printf(SEP "\n");
 }
 
-int save_results(const Database* db, const SearchResult* sr,
-    const char* query, const char* out_path) {
+int save_results(const Database* db, const SearchResult* sr, const char* query, const char* out_path) {
     if (!db || !sr || !query || !out_path) {
         return ERR_FILE;
     }

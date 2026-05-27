@@ -18,78 +18,66 @@ int section_index_of(const Database* db, char key) {
 
 /* --- расширение массива при переполнении секции --- */
 
-/*
- * Переполнена секция с индексом sx.
- *   1. сохраняем данные переполненной секции X во временный буфер.
- *   2. расширяем главный массив записей realloc-ом ровно на old_cap элементов.
- *   3. сдвигаем данные всех последующих секций (начиная с sx+1) влево
- *      на место секции X и обновляем их индексы start (по их capacity).
- *   4. копируем сохраненные данные X в самый конец главного массива,
- *      где для секции X теперь выделено удвоенное пространство (new_cap = old_cap * 2).
- */
 static int overflow_section(Database* db, int sx) {
     Section* secX = &db->sections[sx];
-    /* 1. */
-    int     old_cap = secX->capacity;
-    int     old_count = secX->count;
-    int     new_cap = old_cap * 2;
-    Record* tmp = (Record*)malloc((size_t)old_count * sizeof(Record));
+    printf("\nTEST\n");
+    int old_cap = secX->capacity;
+    int old_count = secX->count;
+    int new_cap = old_cap * 2;
 
-    if (!tmp) {
-        return ERR_MEMORY;
+    /* 1. Если секция последняя, сдвигать некого, просто расширяем общий буфер */
+    if (sx == db->num_sections - 1) {
+        int new_total = db->total_capacity + old_cap;
+        Record* new_rec = (Record*)realloc(db->records, (size_t)new_total * sizeof(Record));
+        if (!new_rec) return ERR_MEMORY;
+
+        db->records = new_rec;
+        db->total_capacity = new_total;
+        secX->capacity = new_cap;
+        return OK;
     }
 
-    memcpy(tmp, &db->records[secX->start], (size_t)old_count * sizeof(Record));
-
-    /* 2. */
-    int new_total = db->total_capacity + old_cap;
-    Record* new_rec = (Record*)realloc(db->records,
-        (size_t)new_total * sizeof(Record));
+    /* 2. Если секция не последняя, выделяем место для нее в конце общего буфера */
+    int new_total = db->total_capacity + new_cap;
+    Record* new_rec = (Record*)realloc(db->records, (size_t)new_total * sizeof(Record));
 
     if (!new_rec) {
-        free(tmp);
         return ERR_MEMORY;
     }
 
     db->records = new_rec;
-    db->total_capacity = new_total;
 
-    /* 3. */
-    int x_start = secX->start;
+    /* Обновляем указатель secX (на случай, если realloc переместил структуру базы,
+       хотя сам массив sections остается на месте, это хорошая практика) */
+    secX = &db->sections[sx];
 
-    if (sx + 1 < db->num_sections) {
-        Section* secY = &db->sections[sx + 1];
-        int      y_start = secY->start;
+    int old_start_x = secX->start;
+    int new_start_x = db->total_capacity; // Старый конец базы = новое начало для X
 
-        /* считаем суммарный выделенный объем (capacity) всех последующих секций */
-        int capacity_after = 0;
-        for (int i = sx + 1; i < db->num_sections; i++) {
-            capacity_after += db->sections[i].capacity;
-        }
+    /* 3. Копируем данные переполненной секции X в конец буфера */
+    memcpy(&db->records[new_start_x], &db->records[old_start_x], (size_t)old_count * sizeof(Record));
 
-        if (capacity_after > 0) {
-            /* перемещаем данные блоками по capacity, чтобы не потерять пустые ячейки */
-            memmove(&db->records[x_start],
-                &db->records[y_start],
-                (size_t)capacity_after * sizeof(Record));
-        }
+    /* 4. Берем следующую секцию (Y) и сдвигаем ее ВЛЕВО на старое место X */
+    Section* secY = &db->sections[sx + 1];
 
-        /* обновляем start всех секций после X строго по их capacity */
-        int cursor = x_start;
-        for (int i = sx + 1; i < db->num_sections; i++) {
-            db->sections[i].start = cursor;
-            cursor += db->sections[i].capacity;
-        }
+    if (secY->count > 0) {
+        /* memmove безопасен при перекрывающихся участках памяти */
+        memmove(&db->records[old_start_x],
+            &db->records[secY->start],
+            (size_t)secY->count * sizeof(Record));
     }
 
-    /* 4. */
-    int new_start = db->total_capacity - new_cap;
-    memcpy(&db->records[new_start], tmp, (size_t)old_count * sizeof(Record));
-    free(tmp);
+    /* 5. Обновляем метаданные секции Y: она начинается раньше и становится больше */
+    secY->start = old_start_x;
+    secY->capacity += old_cap;
+    /* (Конец секции Y физически остался на старом месте, поэтому секцию Z двигать не нужно!) */
 
-    secX->start = new_start;
+    /* 6. Обновляем метаданные секции X */
+    secX->start = new_start_x;
     secX->capacity = new_cap;
-    secX->count = old_count;
+
+    /* 7. Фиксируем новый общий размер базы */
+    db->total_capacity = new_total;
 
     return OK;
 }

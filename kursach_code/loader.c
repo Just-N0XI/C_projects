@@ -158,6 +158,7 @@ int db_load(Database* db, const char* path) {
 
     fclose(fp);
     printf("Загружено записей: %d\n", loaded);
+    db->modified = 0;
 
     return OK;
 }

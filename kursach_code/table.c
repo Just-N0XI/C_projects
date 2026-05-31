@@ -20,12 +20,10 @@ int section_index_of(const Database* db, char key) {
 
 static int overflow_section(Database* db, int sx) {
     Section* secX = &db->sections[sx];
-    printf("\nTEST\n");
     int old_cap = secX->capacity;
     int old_count = secX->count;
     int new_cap = old_cap * 2;
 
-    /* 1. Если секция последняя, сдвигать некого, просто расширяем общий буфер */
     if (sx == db->num_sections - 1) {
         int new_total = db->total_capacity + old_cap;
         Record* new_rec = (Record*)realloc(db->records, (size_t)new_total * sizeof(Record));
@@ -37,7 +35,7 @@ static int overflow_section(Database* db, int sx) {
         return OK;
     }
 
-    /* 2. Если секция не последняя, выделяем место для нее в конце общего буфера */
+    /* если секция не последняя, выделяем место для нее в конце общего буфера */
     int new_total = db->total_capacity + new_cap;
     Record* new_rec = (Record*)realloc(db->records, (size_t)new_total * sizeof(Record));
 
@@ -47,36 +45,27 @@ static int overflow_section(Database* db, int sx) {
 
     db->records = new_rec;
 
-    /* Обновляем указатель secX (на случай, если realloc переместил структуру базы,
-       хотя сам массив sections остается на месте, это хорошая практика) */
     secX = &db->sections[sx];
 
     int old_start_x = secX->start;
-    int new_start_x = db->total_capacity; // Старый конец базы = новое начало для X
+    int new_start_x = db->total_capacity; 
 
-    /* 3. Копируем данные переполненной секции X в конец буфера */
     memcpy(&db->records[new_start_x], &db->records[old_start_x], (size_t)old_count * sizeof(Record));
 
-    /* 4. Берем следующую секцию (Y) и сдвигаем ее ВЛЕВО на старое место X */
     Section* secY = &db->sections[sx + 1];
 
     if (secY->count > 0) {
-        /* memmove безопасен при перекрывающихся участках памяти */
         memmove(&db->records[old_start_x],
             &db->records[secY->start],
             (size_t)secY->count * sizeof(Record));
     }
 
-    /* 5. Обновляем метаданные секции Y: она начинается раньше и становится больше */
     secY->start = old_start_x;
     secY->capacity += old_cap;
-    /* (Конец секции Y физически остался на старом месте, поэтому секцию Z двигать не нужно!) */
 
-    /* 6. Обновляем метаданные секции X */
     secX->start = new_start_x;
     secX->capacity = new_cap;
 
-    /* 7. Фиксируем новый общий размер базы */
     db->total_capacity = new_total;
 
     return OK;
@@ -85,7 +74,7 @@ static int overflow_section(Database* db, int sx) {
 /* --- вставка записи в нужную секцию (с сортировкой) --- */
 
 int db_insert_record(Database* db, const Record* r) {
-    /* найти секцию по первому символу VIN */
+ 
     int sx = section_index_of(db, r->vin[0]);
 
     if (sx < 0) {

@@ -36,8 +36,10 @@ int submenuTable(void)
 int getValidInt(void) {
     int val;
     while (1) {
-        if (scanf("%d", &val) == 1)
+        if (scanf("%d", &val) == 1) {
+            int c; while ((c = getchar()) != '\n' && c != EOF);
             return val;
+        }
         int c; while ((c = getchar()) != '\n' && c != EOF);
         printf("Ошибка: ожидается число. Повторите ввод: ");
     }

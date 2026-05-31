@@ -24,8 +24,8 @@ void insertIntoIndex(IndexArray* idx, int mainIdx, const char* key);
 void markDeletedInEmpIndexes(int mainIdx);
 void markDeletedInTaskIndexes(int mainIdx);
 
-/* --- Ѕинарный поиск (возвращает массив совпадений) --- 
-–езультат Ч динамический массив mainIdx; освобождаетс€ через free() */
+/* --- Ѕинарный поиск  --- 
+–езультат Ч динамический массив mainIdx */
 
 int* binarySearchIndex(const IndexArray* idx, const char* key, int* outCount);
 

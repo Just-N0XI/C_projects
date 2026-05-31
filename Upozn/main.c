@@ -12,7 +12,8 @@
 
 int main(void)
 {
-    setlocale(LC_ALL, "Russian");
+    SetConsoleCP(1251);
+    SetConsoleOutputCP(1251);
     Employee* eArr = NULL;
     Task* tArr = NULL;
     int eCount = 0, eCap = 0;
@@ -50,7 +51,11 @@ int main(void)
 
         case 3: {
             int sub = submenuTable();
-            if (sub == 0) { printf("Отмена.\n"); break; }
+            if (sub == 0) { 
+                printf("Отмена.\n"); 
+                break; 
+            }
+            
             if (sub == 1) {
                 printf("\n  Сортировать сотрудников по:\n");
                 printf("  1. ID (порядок по умолчанию)\n");
@@ -59,11 +64,20 @@ int main(void)
                 printf("  0. Отмена\n");
                 printf("  Выбор: ");
                 int field = getValidInt();
-                if (field == 0) printf("Отмена.\n");
-                else if (field == 1) showEmployees(eArr, eCount);
-                else if (field == 2) showEmployeesSorted(eArr, &idxEmpFIO);
-                else if (field == 3) showEmployeesSorted(eArr, &idxEmpPosition);
-                else                 printf("Неверный выбор.\n");
+                if (field == 0) 
+                    printf("Отмена.\n");
+
+                else if (field == 1) 
+                    showEmployees(eArr, eCount);
+                
+                else if (field == 2) 
+                    showEmployeesSorted(eArr, &idxEmpFIO);
+                
+                else if (field == 3) 
+                    showEmployeesSorted(eArr, &idxEmpPosition);
+                
+                else                 
+                    printf("Неверный выбор.\n");
             }
             else if (sub == 2) {
                 printf("\n  Сортировать задачи по:\n");
@@ -149,7 +163,8 @@ int main(void)
             else if (sub == 2) 
                 deleteTask(tArr, tCount);
             
-            else printf("Отмена.\n");
+            else 
+                printf("Отмена.\n");
             
             break;
         }

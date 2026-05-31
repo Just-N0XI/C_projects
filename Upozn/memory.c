@@ -33,7 +33,17 @@ void loadFiles(Employee** eArr, int* eCount, int* eCap, Task** tArr, int* tCount
 
 	if (!*eArr) {
 		fprintf(stderr, "Ошибка выделения памяти.\n");
+		return;
+	}
+
+	*tCap = INIT_CAPACITY;
+	*tCount = 0;
+	*tArr = (Task*)malloc((size_t)*tCap * sizeof(Task));
+
+	if (!*tArr) {
+		fprintf(stderr, "Ошибка выделения памяти.\n");
 		free(*eArr);
+		return;
 	}
 
 	bool anyMissing = false;
@@ -75,7 +85,6 @@ void loadFiles(Employee** eArr, int* eCount, int* eCap, Task** tArr, int* tCount
 	else
 		printf("Данные успешно загружены.\n");
 
-	/* строим индексные массивы */
 	initIndexArrays(*eArr, *eCount, *tArr, *tCount);
 
 	*isLoaded = true;

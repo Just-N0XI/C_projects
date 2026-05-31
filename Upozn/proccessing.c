@@ -44,13 +44,13 @@ void insertIntoIndex(IndexArray* idx, int mainIdx, const char* key)
 		idx->capacity = newCap;
 	}
 
-	int l = 0, r = idx->count;
-	while (l < r) {
-		int mid = (l + r) / 2;
-		if (strcmp(idx->entries[mid].key, key) <= 0)
-			l = mid + 1;
-		else
-			r = mid;
+	int l = 0;
+	for (int i = 0; i < idx->count; i++) {
+		if (strcmp(idx->entries[i].key, DELETED_KEY) == 0) 
+			continue;
+		if (strcmp(idx->entries[i].key, key) <= 0)
+			l = i + 1;
+		else break;
 	}
 
 	/* сдвиг вправо */
@@ -67,9 +67,10 @@ void insertIntoIndex(IndexArray* idx, int mainIdx, const char* key)
 static void deadlineToSortKey(const char* dl, char* out, int outSize)
 {
 	int d = 0, m = 0, y = 0;
-	if (sscanf(dl, "%d.%d.%d", &d, &m, &y) != 3) 
+	if (sscanf(dl, "%d.%d.%d", &d, &m, &y) != 3) {
 		d = 0; m = 0; y = 0;
 	
+	}
 	snprintf(out, (size_t)outSize, "%04d%02d%02d", y, m, d);
 }
 
@@ -101,12 +102,6 @@ void freeIndexArrays(void) {
 	freeIdx(&idxTaskDeadline);
 }
 
-/*
-markDeleted Ч замен€ем key на \x01
-\x01 < любого печатного символа, поэтому такие
-записи уход€т в самое начало индекса и никогда
-не попадают в результаты поиска по нормальным ключам
-*/
 void markDeletedInEmpIndexes(int mainIdx)
 {
 	for (int i = 0; i < idxEmpFIO.count; i++)

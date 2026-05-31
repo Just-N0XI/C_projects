@@ -313,7 +313,7 @@ void editTask(Task* tArr, int tCount, const Employee* eArr, int eCount)
         insertIntoIndex(&idxTaskProject, idx, t->project_name);
     }
 
-    /* Описание (не индексируется) */
+    /* Описание */
     char buf2[MAX_DESC];
     printf("Описание [%s]: ", t->task_desc);
     getValidString(buf2, MAX_DESC);
@@ -322,7 +322,7 @@ void editTask(Task* tArr, int tCount, const Employee* eArr, int eCount)
         t->task_desc[MAX_DESC - 1] = '\0';
     }
 
-    /* Исполнитель (не индексируется) */
+    /* Исполнитель */
     printf("ID исполнителя [%d] (0 — не менять): ", t->executor_id);
     int eid = getValidInt();
     if (eid > 0) {
@@ -340,6 +340,7 @@ void editTask(Task* tArr, int tCount, const Employee* eArr, int eCount)
     char buf3[MAX_DATE];
     printf("Дедлайн [%s]: ", t->deadline);
     getValidString(buf3, MAX_DATE);
+
     if (buf3[0] != '\0') {
         /* помечаем старый ключ в idxTaskDeadline */
         for (int i = 0; i < idxTaskDeadline.count; i++)
@@ -358,6 +359,7 @@ void editTask(Task* tArr, int tCount, const Employee* eArr, int eCount)
             // Безопасное значение по умолчанию, если дата повреждена
             snprintf(sortKey, sizeof(sortKey), "99991231");
         }
+        insertIntoIndex(&idxTaskDeadline, idx, sortKey);
     }
 
     printf("Данные обновлены.\n");
@@ -376,7 +378,7 @@ bool hasDependentTasks(int emp_id, const Task* tArr, int tCount)
 }
 
 /* 
-   Вспомогательная: выбрать одну запись из найденных
+   Выбрать одну запись из найденных
    Возвращает mainIdx в основном массиве или -1.
  */
 static int chooseFromResults(int* results, int cnt,
@@ -434,7 +436,6 @@ void deleteEmployee(Employee* eArr, int eCount,
             free(res); 
             return; 
         }
-        /* вывести найденных */
         printf("%-6s %-30s %-20s\n", "ID", "ФИО", "Должность");
         for (int i = 0; i < cnt; i++) {
             int mi = res[i];
